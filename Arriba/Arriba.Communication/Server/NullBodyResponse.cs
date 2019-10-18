@@ -4,48 +4,24 @@
 namespace Arriba.Communication
 {
     /// <summary>
-    /// Modifies a response to have no response body.
+    ///     Modifies a response to have no response body.
     /// </summary>
     internal class NullBodyResponse : IResponse
     {
-        private IResponse _response;
+        private readonly IResponse _response;
 
         public NullBodyResponse(IResponse response)
         {
             _response = response;
         }
 
-        public ResponseStatus Status
-        {
-            get
-            {
-                return _response.Status;
-            }
-        }
+        public bool Handled => true;
 
-        public object ResponseBody
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public ResponseStatus Status => _response.Status;
 
-        public bool Handled
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public object ResponseBody => null;
 
-        public IWritableValueBag Headers
-        {
-            get
-            {
-                return _response.Headers;
-            }
-        }
+        public IWritableValueBag Headers => _response.Headers;
 
         public void AddHeader(string key, string value)
         {
@@ -53,6 +29,7 @@ namespace Arriba.Communication
         }
 
         public void Dispose()
-        { }
+        {
+        }
     }
 }

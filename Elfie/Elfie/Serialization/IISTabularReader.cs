@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Elfie.Serialization
             return false;
         }
 
-        protected override String8Set SplitCells(String8 row, PartialArray<int> cellPositionArray)
+        protected override String8Set? SplitCells(String8 row, PartialArray<int> cellPositionArray)
         {
             // Remove trailing '\r' to handle '\r\n' and '\n' line endings uniformly
             if (row.EndsWith(UTF8.CR)) row = row.Substring(0, row.Length - 1);

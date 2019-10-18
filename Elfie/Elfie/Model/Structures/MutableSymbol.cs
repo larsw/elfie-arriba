@@ -3,7 +3,7 @@
 
 using System;
 using System.Text;
-
+using Elfie.Core;
 using Microsoft.CodeAnalysis.Elfie.Model.Strings;
 
 namespace Microsoft.CodeAnalysis.Elfie.Model.Structures

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Elfie.Serialization
         }
 
         // Break a row from the file into contiguous ranges for each logical cell
-        protected abstract String8Set SplitCells(String8 row, PartialArray<int> cellPositionArray);
+        protected abstract String8Set? SplitCells(String8 row, PartialArray<int> cellPositionArray);
 
         // Break a block from the file into contiguous ranges for each logical row
         protected abstract String8Set SplitRows(String8 block, PartialArray<int> rowPositionArray);
@@ -182,11 +182,21 @@ namespace Microsoft.CodeAnalysis.Elfie.Serialization
         /// <returns>True if another row exists, False if the TSV is out of content</returns>
         public virtual bool NextRow()
         {
-            String8 row = _reader.NextRow();
+            var row = _reader.NextRow();
             if (row.IsEmpty()) return false;
 
             // Split the line into cells
-            _currentRowColumns = SplitCells(row, _cellPositionArray);
+            String8Set? result = null;
+            while (!result.HasValue)
+            {
+                result = SplitCells(row, _cellPositionArray);
+                if (result == null)
+                {
+                    row = _reader.NextRow();
+                    if (row.IsEmpty()) return false;
+                }
+            }
+            _currentRowColumns = result.Value;
 
             this.RowCountRead++;
 

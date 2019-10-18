@@ -29,10 +29,10 @@ namespace Arriba
     [Serializable]
     public class ArribaWriteException : ArribaException
     {
-        public const string MessageFormatString = "Unable to write item ID '{0}' column '{1}' value of '{2}'. See inner exception for details.";
+        public const string MessageFormatString = "Unable to write item ID '{0}' column '{1}' value of '{2}'. {3}";
 
         public ArribaWriteException(object itemId, string columnName, object value, Exception innerException)
-            : this(StringExtensions.Format(MessageFormatString, itemId, columnName, value ?? "null"), innerException)
+            : this(StringExtensions.Format(MessageFormatString, itemId, columnName, value ?? "null", innerException.Message), innerException)
         { }
 
         public ArribaWriteException() { }

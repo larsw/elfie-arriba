@@ -29,12 +29,12 @@ namespace Arriba.Model.Security
     {
         public SecurityPermissions()
         {
-            this.Readers = new HashSet<SecurityIdentity>();
-            this.Writers = new HashSet<SecurityIdentity>();
-            this.Owners = new HashSet<SecurityIdentity>();
+            Readers = new HashSet<SecurityIdentity>();
+            Writers = new HashSet<SecurityIdentity>();
+            Owners = new HashSet<SecurityIdentity>();
 
-            this.RestrictedColumns = new SecuredSet<List<string>>();
-            this.RowRestrictedUsers = new SecuredSet<string>();
+            RestrictedColumns = new SecuredSet<List<string>>();
+            RowRestrictedUsers = new SecuredSet<string>();
         }
 
         /// <summary>
@@ -67,13 +67,7 @@ namespace Arriba.Model.Security
         /// <summary>
         /// Gets a value indicating whether the this security permissions set contains any identities. 
         /// </summary>
-        public bool HasTableAccessSecurity
-        {
-            get
-            {
-                return Owners.Count > 0;
-            }
-        }
+        public bool HasTableAccessSecurity => Owners.Count > 0;
 
         /// <summary>
         /// Gets an enumeration of security identities that match the specified permission scope. 
@@ -132,7 +126,8 @@ namespace Arriba.Model.Security
         {
             if (Owners.Count == 0 && scope != PermissionScope.Owner)
             {
-                throw new ArribaException(String.Format("Unable to grant permission scope {0} as there are no identities with owner scope", scope));
+                throw new ArribaException(
+                    $"Unable to grant permission scope {scope} as there are no identities with owner scope");
             }
 
             var target = GetSpecificPermissionsScopeHashSet(scope);
@@ -214,7 +209,7 @@ namespace Arriba.Model.Security
                 case PermissionScope.Writer:
                     return Writers;
                 default:
-                    throw new ArribaException(String.Format("Unknown permission scope {0}", scope));
+                    throw new ArribaException($"Unknown permission scope {scope}");
             }
         }
 
@@ -229,7 +224,7 @@ namespace Arriba.Model.Security
                 case PermissionScope.Owner:
                     return Owners;
                 default:
-                    throw new ArribaException(String.Format("Unknown permission scope {0}", permissions));
+                    throw new ArribaException($"Unknown permission scope {permissions}");
             }
         }
 

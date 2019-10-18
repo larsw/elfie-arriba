@@ -12,6 +12,7 @@ using CommandLine;
 
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Elfie.Indexer;
+//using Microsoft.CodeAnalysis.Elfie.Indexer;
 using Microsoft.CodeAnalysis.Elfie.PDB;
 
 namespace SymbolSourceGet

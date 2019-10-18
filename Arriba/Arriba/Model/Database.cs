@@ -28,13 +28,7 @@ namespace Arriba.Model
             return this[query.TableName].Query(query);
         }
 
-        public Table this[string tableName]
-        {
-            get
-            {
-                return this.GetOrLoadTable(tableName);
-            }
-        }
+        public Table this[string tableName] => this.GetOrLoadTable(tableName);
 
         public void DropTable(string tableName)
         {
@@ -54,7 +48,7 @@ namespace Arriba.Model
 
         public Table AddTable(string tableName, long itemCountLimit)
         {
-            if (tableName == null) throw new ArgumentNullException("tableName");
+            if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 
             if (tableName.StartsWith(SystemTablePrefix, StringComparison.OrdinalIgnoreCase))
             {
@@ -106,24 +100,27 @@ namespace Arriba.Model
 
         private bool IsTableLoaded(string tableName)
         {
-            return _tables.ContainsKey(tableName) && _tables[tableName].IsValueCreated;
+            lock (_tableLock)
+            {
+                return _tables.ContainsKey(tableName) && _tables[tableName].IsValueCreated;
+            }
         }
 
         public bool TableExists(string tableName)
         {
-            return this.IsTableLoaded(tableName) || this.TableExistsOnDisk(tableName);
+            return IsTableLoaded(tableName) || TableExistsOnDisk(tableName);
         }
 
         private bool TableExistsOnDisk(string tableName)
         {
-            return this.TableNames.Contains(tableName, StringComparer.OrdinalIgnoreCase);
+            return TableNames.Contains(tableName, StringComparer.OrdinalIgnoreCase);
         }
 
         public IEnumerable<string> TableNames
         {
             get
             {
-                return BinarySerializable.EnumerateDirectoriesUnder("Tables").Select(p => Path.GetFileName(p)).Where((name) => Table.Exists(name));
+                return BinarySerializable.EnumerateDirectoriesUnder("Tables").Select(Path.GetFileName).Where((name) => Table.Exists(name));
             }
         }
 
@@ -153,11 +150,11 @@ namespace Arriba.Model
 
         public virtual void ReloadTable(string tableName)
         {
+            var t = new Table();
             lock (_tableLock)
             {
                 _tables[tableName] = new Lazy<Table>(() =>
                 {
-                    Table t = new Table();
                     t.Load(tableName);
                     return t;
                 });
@@ -182,7 +179,7 @@ namespace Arriba.Model
 
         public void EnsureLoaded(string tableName)
         {
-            this.GetOrLoadTable(tableName);
+            GetOrLoadTable(tableName);
         }
     }
 }

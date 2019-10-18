@@ -1,24 +1,24 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Specialized;
-
 namespace Arriba.Communication
 {
+    using System;
+    using System.Collections.Specialized;
+
     /// <summary>
-    /// Default implementation of IResponse
+    ///     Default implementation of IResponse
     /// </summary>
     public class Response : IResponse
     {
-        private Lazy<IWritableValueBag> _headersLazy = new Lazy<IWritableValueBag>(() => new NameValueCollectionValueBag(new NameValueCollection()));
+        private readonly Lazy<IWritableValueBag> _headersLazy =
+            new Lazy<IWritableValueBag>(() => new NameValueCollectionValueBag(new NameValueCollection()));
 
-        private static IResponse s_notHandledSingleton = new Response(ResponseStatus.NotHandled, null);
-        private object _responseBody;
+        private readonly object _responseBody;
 
         public Response(ResponseStatus status)
         {
-            this.Status = status;
+            Status = status;
         }
 
         public Response(ResponseStatus status, object body)
@@ -27,44 +27,28 @@ namespace Arriba.Communication
             _responseBody = body;
         }
 
-        public ResponseStatus Status
+        public static IResponse NotHandled { get; } = new Response(ResponseStatus.NotHandled, null);
+
+        public ResponseStatus Status { get; }
+
+        public virtual object ResponseBody => GetResponseBody();
+
+        public IWritableValueBag Headers => _headersLazy.Value;
+
+        public void AddHeader(string key, string value)
         {
-            get;
-            private set;
+            _headersLazy.Value.Add(key, value);
         }
 
-        public virtual object ResponseBody
+        public void Dispose()
         {
-            get
-            {
-                return this.GetResponseBody();
-            }
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual object GetResponseBody()
         {
             return _responseBody;
-        }
-
-        public IWritableValueBag Headers
-        {
-            get
-            {
-                return _headersLazy.Value;
-            }
-        }
-
-        public static IResponse NotHandled
-        {
-            get
-            {
-                return s_notHandledSingleton;
-            }
-        }
-
-        public void AddHeader(string key, string value)
-        {
-            _headersLazy.Value.Add(key, value);
         }
 
         internal static IResponse Error(object body)
@@ -82,13 +66,8 @@ namespace Arriba.Communication
             return new Response(ResponseStatus.NotFound, null);
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         protected virtual void Dispose(bool disposing)
-        { }
+        {
+        }
     }
 }

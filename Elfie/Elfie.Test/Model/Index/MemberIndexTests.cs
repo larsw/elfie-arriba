@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Elfie.Model.Index;
 using Microsoft.CodeAnalysis.Elfie.Model.Strings;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Range = Microsoft.CodeAnalysis.Elfie.Model.Structures.Range;
 
 namespace Microsoft.CodeAnalysis.Elfie.Test.Model.Index
 {
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Elfie.Test.Model.Index
             return MatchesToString(index, matches);
         }
 
-        private string MatchesToString(MemberIndex index, Range stringRange)
+        private string MatchesToString(MemberIndex index, Elfie.Model.Structures.Range stringRange)
         {
             // Find matches for string range
             int[] matchBlock;

@@ -1,57 +1,33 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
 namespace Arriba.Communication
 {
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Security.Principal;
+    using System.Threading.Tasks;
+
     /// <summary>
-    /// Modifies the request verb for a request.
+    ///     Modifies the request verb for a request.
     /// </summary>
     internal class ModifiedVerbRequest : IRequest
     {
-        private RequestVerb _verb;
-        private IRequest _request;
+        private readonly IRequest _request;
 
         public ModifiedVerbRequest(IRequest request, RequestVerb verb)
         {
             _request = request;
-            _verb = verb;
+            Method = verb;
         }
 
-        public RequestVerb Method
-        {
-            get
-            {
-                return _verb;
-            }
-        }
+        public RequestVerb Method { get; }
 
-        public string Resource
-        {
-            get
-            {
-                return _request.Resource;
-            }
-        }
+        public string Resource => _request.Resource;
 
-        public System.Security.Principal.IPrincipal User
-        {
-            get
-            {
-                return _request.User;
-            }
-        }
+        public IPrincipal User => _request.User;
 
-        public bool HasBody
-        {
-            get
-            {
-                return _request.HasBody;
-            }
-        }
+        public bool HasBody => _request.HasBody;
 
         public Task<T> ReadBodyAsync<T>()
         {
@@ -59,37 +35,16 @@ namespace Arriba.Communication
         }
 
 
-        public IValueBag ResourceParameters
-        {
-            get
-            {
-                return _request.ResourceParameters;
-            }
-        }
+        public IValueBag ResourceParameters => _request.ResourceParameters;
 
-        public IValueBag Headers
-        {
-            get
-            {
-                return _request.Headers;
-            }
-        }
+        public IValueBag Headers => _request.Headers;
 
-        public Stream InputStream
-        {
-            get { return _request.InputStream; }
-        }
+        public Stream InputStream => _request.InputStream;
 
 
-        public IEnumerable<string> AcceptedResponseTypes
-        {
-            get { return _request.AcceptedResponseTypes; }
-        }
+        public IEnumerable<string> AcceptedResponseTypes => _request.AcceptedResponseTypes;
 
 
-        public string Origin
-        {
-            get { return _request.Origin; }
-        }
+        public string Origin => _request.Origin;
     }
 }

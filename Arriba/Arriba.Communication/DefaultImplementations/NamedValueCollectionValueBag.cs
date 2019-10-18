@@ -1,29 +1,25 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Specialized;
-
 namespace Arriba.Communication
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.Specialized;
+
     /// <summary>
-    /// Value bag implementation wrapping a NameValueCollection
+    ///     Value bag implementation wrapping a NameValueCollection
     /// </summary>
     public class NameValueCollectionValueBag : IWritableValueBag
     {
-        private NameValueCollection _context;
+        private readonly NameValueCollection _context;
+
         public NameValueCollectionValueBag(NameValueCollection context)
         {
             _context = context;
         }
 
-        public string this[string key]
-        {
-            get
-            {
-                return _context[key];
-            }
-        }
+        public string this[string key] => _context[key];
 
         public bool Contains(string key)
         {
@@ -43,31 +39,24 @@ namespace Arriba.Communication
 
         public void AddOrUpdate(string key, string value)
         {
-            if (this.Contains(key))
-            {
+            if (Contains(key))
                 _context[key] = value;
-            }
             else
-            {
-                this.Add(key, value);
-            }
+                Add(key, value);
         }
 
-        public System.Collections.Generic.IEnumerable<System.Tuple<string, string>> ValuePairs
+        public IEnumerable<Tuple<string, string>> ValuePairs
         {
             get
             {
-                foreach (var key in _context.AllKeys)
-                {
-                    yield return Tuple.Create(key, _context[key]);
-                }
+                foreach (var key in _context.AllKeys) yield return Tuple.Create(key, _context[key]);
             }
         }
 
 
         public bool TryGetValues(string key, out string[] values)
         {
-            values = this.Contains(key) ? _context.GetValues(key) : null;
+            values = Contains(key) ? _context.GetValues(key) : null;
             return values != null && values.Length > 0;
         }
     }

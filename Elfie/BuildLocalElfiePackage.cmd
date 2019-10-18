@@ -14,6 +14,6 @@ set DROP=.\bin\
 if exist %DROP%nuget (rd /s /q %DROP%nuget)
 md %DROP%nuget
 
-.nuget\NuGet.exe pack .\Nuget\Microsoft.CodeAnalysis.Elfie.nuspec -Symbols -Properties source_root=.;id=Microsoft.CodeAnalysis.Elfie;major=%MAJOR%;minor=%MINOR%;patch=%PATCH%;prerelease=%PRERELEASE% -Verbosity Quiet -BasePath %DROP%\Release -OutputDirectory %DROP%Nuget 
+c:\temp\nuget.exe pack .\Nuget\Microsoft.CodeAnalysis.Elfie.nuspec -Symbols -Properties source_root=.;id=Microsoft.CodeAnalysis.Elfie;major=%MAJOR%;minor=%MINOR%;patch=%PATCH%;prerelease=%PRERELEASE% -Verbosity Quiet -BasePath %DROP%\Release -OutputDirectory %DROP%Nuget 
 
 if "%ERRORLEVEL%" EQU "0" (echo Package created %DROP%Nuget\Microsoft.CodeAnalysis.Elfie.%MAJOR%.%MINOR%.%PATCH%%PRERELEASE%.nupkg)

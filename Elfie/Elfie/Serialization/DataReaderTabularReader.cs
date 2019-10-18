@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Elfie.Serialization
             _columnNames = new List<string>();
             foreach (DataRow row in _reader.GetSchemaTable().Rows)
             {
-                _columnNames.Add(row.Field<string>("ColumnName"));
+                
+                _columnNames.Add((string)row["ColumnName"]); //(row.Field<string>("ColumnName"));
             }
 
             _block = new String8Block();

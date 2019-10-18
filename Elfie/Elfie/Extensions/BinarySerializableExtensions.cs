@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-
+using Elfie.Core;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
 
 namespace Microsoft.CodeAnalysis.Elfie.Extensions

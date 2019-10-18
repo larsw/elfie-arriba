@@ -1,23 +1,21 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using Arriba.Communication;
-
 namespace Arriba.Server
 {
+    using System;
+    using System.Collections.Generic;
+    using Communication;
+
     internal class DictionaryValueBag : IWritableValueBag
     {
-        private IDictionary<string, string[]> _dictionary;
+        private readonly IDictionary<string, string[]> _dictionary;
 
         public DictionaryValueBag(IDictionary<string, string[]> dictionary)
         {
             _dictionary = dictionary;
         }
+
         public void Add(string key, string value)
         {
             string[] original;
@@ -29,29 +27,19 @@ namespace Arriba.Server
             }
             else
             {
-                _dictionary.Add(key, new string[] { value });
+                _dictionary.Add(key, new[] {value});
             }
         }
 
         public void AddOrUpdate(string key, string value)
         {
             if (_dictionary.ContainsKey(key))
-            {
-                _dictionary[key] = new string[] { value };
-            }
+                _dictionary[key] = new[] {value};
             else
-            {
-                _dictionary.Add(key, new string[] { value });
-            }
+                _dictionary.Add(key, new[] {value});
         }
 
-        public string this[string key]
-        {
-            get
-            {
-                return _dictionary[key][0];
-            }
-        }
+        public string this[string key] => _dictionary[key][0];
 
         public bool Contains(string key)
         {
@@ -81,10 +69,7 @@ namespace Arriba.Server
         {
             get
             {
-                foreach (var item in _dictionary)
-                {
-                    yield return Tuple.Create(item.Key, item.Value[0]);
-                }
+                foreach (var item in _dictionary) yield return Tuple.Create(item.Key, item.Value[0]);
             }
         }
     }

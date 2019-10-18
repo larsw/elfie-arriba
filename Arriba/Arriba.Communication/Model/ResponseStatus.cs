@@ -4,43 +4,43 @@
 namespace Arriba.Communication
 {
     /// <summary>
-    /// Response status.
+    ///     Response status.
     /// </summary>
     public enum ResponseStatus
     {
         /// <summary>
-        /// Request was not handled.
+        ///     Request was not handled.
         /// </summary>
         NotHandled,
 
         /// <summary>
-        /// Resource not found. 
+        ///     Resource not found.
         /// </summary>
         NotFound,
 
         /// <summary>
-        /// Successful result. 
+        ///     Successful result.
         /// </summary>
         Ok,
 
         /// <summary>
-        /// Client made a bad request.
+        ///     Client made a bad request.
         /// </summary>
         BadRequest,
 
         /// <summary>
-        /// Server errored whilst processing a request.
+        ///     Server errored whilst processing a request.
         /// </summary>
         Error,
 
         /// <summary>
-        /// Client does not have permissions to the resource.
+        ///     Client does not have permissions to the resource.
         /// </summary>
         Forbidden,
 
         /// <summary>
-        /// Resources submitted are created successfully
+        ///     Resources submitted are created successfully
         /// </summary>
-        Created,
+        Created
     }
 }

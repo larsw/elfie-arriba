@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 
 using Microsoft.CodeAnalysis.Elfie.Model.Strings;
-using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Range = Microsoft.CodeAnalysis.Elfie.Model.Structures.Range;
 
 namespace Microsoft.CodeAnalysis.Elfie.Test.Model
 {

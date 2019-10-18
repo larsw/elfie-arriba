@@ -149,27 +149,27 @@ namespace Arriba.Server
         /// <returns>parsed set of symbols</returns>
         private static Dictionary<string, string> OpenConfigForName(string name)
         {
-            if (name == null) throw new ArgumentNullException("name");
+            if (name == null) throw new ArgumentNullException(nameof(name));
 
-            System.Configuration.Configuration config;
+            //System.Configuration.Configuration config;
 
-            if (name.Length == 0)
-            {
-                // No name - open default App.Config file name for this exe
-                config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            }
-            else
-            {
-                // Name passed - load config for the given name
-                ExeConfigurationFileMap map = new ExeConfigurationFileMap();
-                map.ExeConfigFilename = name;
-                config = ConfigurationManager.OpenMappedExeConfiguration(map, ConfigurationUserLevel.None);
-            }
+            //if (name.Length == 0)
+            //{
+            //    // No name - open default App.Config file name for this exe
+            //    config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            //}
+            //else
+            //{
+            //    // Name passed - load config for the given name
+            //    ExeConfigurationFileMap map = new ExeConfigurationFileMap();
+            //    map.ExeConfigFilename = name;
+            //    config = ConfigurationManager.OpenMappedExeConfiguration(map, ConfigurationUserLevel.None);
+            //}
 
             Dictionary<string, string> settings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
-            foreach (string key in config.AppSettings.Settings.AllKeys)
-                settings.Add(key, config.AppSettings.Settings[key].Value);
+            //foreach (string key in config.AppSettings.Settings.AllKeys)
+            //    settings.Add(key, config.AppSettings.Settings[key].Value);
 
             return settings;
         }

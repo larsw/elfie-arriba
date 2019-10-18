@@ -1,56 +1,49 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Composition;
-using System.Net;
-using System.Security.Principal;
-using System.Threading.Tasks;
-
-using Arriba.Communication;
-using Arriba.Communication.Application;
-using Arriba.Model;
-using Arriba.Model.Correctors;
-using Arriba.Model.Security;
-using Arriba.Monitoring;
-using Arriba.Server.Authentication;
-using Arriba.Server.Hosting;
-
 namespace Arriba.Server
 {
+    using System;
+    using System.Composition;
+    using System.Net;
+    using System.Security.Principal;
+    using System.Threading.Tasks;
+    using Authentication;
+    using Communication;
+    using Communication.Application;
+    using Hosting;
+    using Model;
+    using Model.Correctors;
+    using Model.Security;
+    using Monitoring;
+
     internal abstract class ArribaApplication : RoutedApplication<IResponse>
     {
         protected static readonly ArribaResponse ContinueToNextHandlerResponse = null;
-        private ClaimsAuthenticationService _claimsAuth;
-        private ComposedCorrector _correctors;
+        private readonly ClaimsAuthenticationService _claimsAuth;
+        private readonly ComposedCorrector _correctors;
 
         [ImportingConstructor]
         protected ArribaApplication(DatabaseFactory factory, ClaimsAuthenticationService claimsAuth)
         {
-            this.EventSource = EventPublisher.CreateEventSource(this.GetType().Name);
-            this.Database = factory.GetDatabase();
+            EventSource = EventPublisher.CreateEventSource(GetType().Name);
+            Database = factory.GetDatabase();
             _claimsAuth = claimsAuth;
 
             // Cache correctors which aren't request specific
             // Cache the People table so that it isn't reloaded for every request.
             // TODO: Need to make configurable by table.
-            _correctors = new ComposedCorrector(new TodayCorrector(), new UserAliasCorrector(this.Database["People"]));
+            _correctors = new ComposedCorrector(new TodayCorrector(), new UserAliasCorrector(Database["People"]));
         }
 
-        public override string Name
-        {
-            get
-            {
-                return this.GetType().Name;
-            }
-        }
+        public override string Name => GetType().Name;
 
-        protected SecureDatabase Database { get; private set; }
+        protected SecureDatabase Database { get; }
 
-        public EventPublisherSource EventSource { get; private set; }
+        public EventPublisherSource EventSource { get; }
 
         /// <summary>
-        ///  Return the current Corrector(s) to use to correct queries
+        ///     Return the current Corrector(s) to use to correct queries
         /// </summary>
         /// <param name="ctx"></param>
         /// <returns></returns>
@@ -63,124 +56,105 @@ namespace Arriba.Server
         protected Task<IResponse> ValidateBodyAsync(IRequestContext ctx, Route route)
         {
             if (!ctx.Request.HasBody)
-            {
                 return Task.FromResult<IResponse>(ArribaResponse.BadRequest("Request must have content body"));
-            }
 
             return Task.FromResult<IResponse>(null);
         }
 
         protected Task<IResponse> ValidateReadAccessAsync(IRequestContext ctx, Route route)
         {
-            return Task.FromResult<IResponse>(this.ValidateReadAccess(ctx, route));
+            return Task.FromResult(ValidateReadAccess(ctx, route));
         }
 
         protected Task<IResponse> ValidateWriteAccessAsync(IRequestContext ctx, Route route)
         {
-            return Task.FromResult<IResponse>(this.ValidateWriteAccess(ctx, route));
+            return Task.FromResult(ValidateWriteAccess(ctx, route));
         }
 
         protected Task<IResponse> ValidateOwnerAccessAsync(IRequestContext ctx, Route route)
         {
-            return Task.FromResult<IResponse>(this.ValidateOwnerAccess(ctx, route));
+            return Task.FromResult(ValidateOwnerAccess(ctx, route));
         }
 
         protected Task<IResponse> ValidateCreateAccessAsync(IRequestContext ctx, Route route)
         {
-            return Task.FromResult<IResponse>(this.ValidateCreateAccess(ctx, route));
+            return Task.FromResult(ValidateCreateAccess(ctx, route));
         }
 
         protected IResponse ValidateCreateAccess(IRequestContext ctx, Route route)
         {
-            bool hasPermission = false;
+            var hasPermission = false;
 
-            var security = this.Database.DatabasePermissions();
-            if(!security.HasTableAccessSecurity)
-            {
+            var security = Database.DatabasePermissions();
+            if (!security.HasTableAccessSecurity)
                 // If there's no security, table create is only allowed if the service is running as the same user
                 hasPermission = ctx.Request.User.Identity.Name.Equals(WindowsIdentity.GetCurrent().Name);
-            }
             else
-            {
                 // Otherwise, check for writer or better permissions at the DB level
                 hasPermission = HasPermission(security, ctx.Request.User, PermissionScope.Writer);
-            }
 
-            if(!hasPermission)
-            {
-                return ArribaResponse.Forbidden(String.Format("Create Table access denied for {0}.", ctx.Request.User.Identity.Name));
-            }
-            else
-            {
-                return ContinueToNextHandlerResponse;
-            }
+            if (!hasPermission)
+                return ArribaResponse.Forbidden($"Create Table access denied for {ctx.Request.User.Identity.Name}.");
+            return ContinueToNextHandlerResponse;
         }
 
         protected IResponse ValidateReadAccess(IRequestContext ctx, Route routeData)
         {
-            return this.ValidateTableAccess(ctx, routeData, PermissionScope.Reader);
+            return ValidateTableAccess(ctx, routeData, PermissionScope.Reader);
         }
 
         protected IResponse ValidateWriteAccess(IRequestContext ctx, Route routeData)
         {
-            return this.ValidateTableAccess(ctx, routeData, PermissionScope.Writer);
+            return ValidateTableAccess(ctx, routeData, PermissionScope.Writer);
         }
 
         protected IResponse ValidateOwnerAccess(IRequestContext ctx, Route routeData)
         {
-            return this.ValidateTableAccess(ctx, routeData, PermissionScope.Owner);
+            return ValidateTableAccess(ctx, routeData, PermissionScope.Owner);
         }
 
-        protected Task<IResponse> ValidateTableAccessAsync(IRequestContext ctx, Route routeData, PermissionScope scope, bool overrideLocalHostSameUser = false)
+        protected Task<IResponse> ValidateTableAccessAsync(IRequestContext ctx, Route routeData, PermissionScope scope,
+            bool overrideLocalHostSameUser = false)
         {
-            return Task.FromResult<IResponse>(this.ValidateTableAccess(ctx, routeData, scope, overrideLocalHostSameUser));
+            return Task.FromResult(ValidateTableAccess(ctx, routeData, scope, overrideLocalHostSameUser));
         }
 
-        protected IResponse ValidateTableAccess(IRequestContext ctx, Route routeData, PermissionScope scope, bool overrideLocalHostSameUser = false)
+        protected IResponse ValidateTableAccess(IRequestContext ctx, Route routeData, PermissionScope scope,
+            bool overrideLocalHostSameUser = false)
         {
-            string tableName = GetAndValidateTableName(routeData);
-            if (!this.Database.TableExists(tableName))
-            {
-                return ArribaResponse.NotFound("Table requested does not exist.");
-            }
+            var tableName = GetAndValidateTableName(routeData);
+            if (!Database.TableExists(tableName)) return ArribaResponse.NotFound("Table requested does not exist.");
 
             var currentUser = ctx.Request.User;
 
             // If we are asked if override auth, check if the request was made from a loopback address (local) and the 
             // current process identity matches the request identity
-            if (overrideLocalHostSameUser && IsRequestOriginLoopback(ctx.Request) && IsProcessUserSame(currentUser.Identity))
+            if (overrideLocalHostSameUser && IsRequestOriginLoopback(ctx.Request) &&
+                IsProcessUserSame(currentUser.Identity))
             {
                 // Log for auditing that we skipped out on checking table auth. 
-                this.EventSource.Raise(MonitorEventLevel.Warning,
-                                        MonitorEventOpCode.Mark,
-                                        entityType: "Table",
-                                        entityIdentity: tableName,
-                                        name: "Authentication Override",
-                                        user: ctx.Request.User.Identity.Name,
-                                        detail: "Skipping table authentication for local loopback user on request");
+                EventSource.Raise(MonitorEventLevel.Warning,
+                    MonitorEventOpCode.Mark,
+                    "Table",
+                    tableName,
+                    "Authentication Override",
+                    ctx.Request.User.Identity.Name,
+                    "Skipping table authentication for local loopback user on request");
 
                 return ContinueToNextHandlerResponse;
             }
 
             if (!HasTableAccess(tableName, currentUser, scope))
-            {
-                return ArribaResponse.Forbidden(String.Format("Access to {0} denied for {1}.", tableName, currentUser.Identity.Name));
-            }
-            else
-            {
-                return ContinueToNextHandlerResponse;
-            }
+                return ArribaResponse.Forbidden($"Access to {tableName} denied for {currentUser.Identity.Name}.");
+            return ContinueToNextHandlerResponse;
         }
 
         protected bool HasTableAccess(string tableName, IPrincipal currentUser, PermissionScope scope)
         {
-            var security = this.Database.Security(tableName);
+            var security = Database.Security(tableName);
 
             // No security? Allowed.
-            if(!security.HasTableAccessSecurity)
-            {
-                return true;
-            }
+            if (!security.HasTableAccessSecurity) return true;
 
             // Otherwise check permissions
             return HasPermission(security, currentUser, scope);
@@ -189,25 +163,15 @@ namespace Arriba.Server
         protected bool HasPermission(SecurityPermissions security, IPrincipal currentUser, PermissionScope scope)
         {
             // No user identity? Forbidden! 
-            if (currentUser == null || !currentUser.Identity.IsAuthenticated)
-            {
-                return false;
-            }
+            if (currentUser == null || !currentUser.Identity.IsAuthenticated) return false;
 
             // Try user first, cheap check. 
-            if (security.IsIdentityInPermissionScope(IdentityScope.User, currentUser.Identity.Name, scope))
-            {
-                return true;
-            }
+            if (security.IsIdentityInPermissionScope(IdentityScope.User, currentUser.Identity.Name, scope)) return true;
 
             // See if the user is in any allowed groups.
             foreach (var group in security.GetScopeIdentities(scope, IdentityScope.Group))
-            {
                 if (_claimsAuth.IsUserInGroup(currentUser, group.Name))
-                {
                     return true;
-                }
-            }
 
             return false;
         }
@@ -215,28 +179,25 @@ namespace Arriba.Server
         protected bool IsInIdentity(IPrincipal currentUser, SecurityIdentity targetUserOrGroup)
         {
             if (targetUserOrGroup.Scope == IdentityScope.User)
-            {
                 return targetUserOrGroup.Name.Equals(currentUser.Identity.Name, StringComparison.OrdinalIgnoreCase);
-            }
-            else
-            {
-                return _claimsAuth.IsUserInGroup(currentUser, targetUserOrGroup.Name);
-            }
+            return _claimsAuth.IsUserInGroup(currentUser, targetUserOrGroup.Name);
         }
 
         /// <summary>
-        /// Validates the current process identity matches the given identity.
+        ///     Validates the current process identity matches the given identity.
         /// </summary>
         /// <param name="identity">Identity to validate.</param>
         /// <returns>true if same user otherwise false.</returns>
         private static bool IsProcessUserSame(IIdentity identity)
         {
-            var processUserName = (String.IsNullOrEmpty(Environment.UserDomainName) ? String.Empty : (Environment.UserDomainName + @"\")) + Environment.UserName;
-            return String.Equals(identity.Name, processUserName, StringComparison.OrdinalIgnoreCase);
+            var processUserName =
+                (string.IsNullOrEmpty(Environment.UserDomainName) ? string.Empty : Environment.UserDomainName + @"\") +
+                Environment.UserName;
+            return string.Equals(identity.Name, processUserName, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
-        /// Validates that the given request was made from a loopback address (localhost). 
+        ///     Validates that the given request was made from a loopback address (localhost).
         /// </summary>
         /// <param name="request">Request to validate.</param>
         /// <returns>true if request was made from a loopback address, otherwise false. </returns>
@@ -248,12 +209,9 @@ namespace Arriba.Server
 
         protected string GetAndValidateTableName(Route route)
         {
-            string tableName = route["tableName"];
+            var tableName = route["tableName"];
 
-            if (String.IsNullOrEmpty(tableName))
-            {
-                throw new ArgumentException("No table name specified in route");
-            }
+            if (string.IsNullOrEmpty(tableName)) throw new ArgumentException("No table name specified in route");
 
             return tableName;
         }
@@ -263,10 +221,8 @@ namespace Arriba.Server
             var arribaResponse = response as ArribaResponse;
 
             if (arribaResponse != null)
-            {
                 // Add the request trace timings to the response trace timings so they can be output to the client.
                 arribaResponse.ResponseBody.TraceTimings = request.TraceTimings;
-            }
 
             // Always no cache for arriba responses 
             response.AddHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1

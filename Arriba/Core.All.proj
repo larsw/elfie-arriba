@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.Build.Traversal/2.0.19">
+    <ItemGroup>
+        <ProjectReference Include="Arriba\Arriba.Core.csproj" />
+        <!-- <ProjectReference Include="Arriba.Client\Arriba.Core.Client.csproj" />
+        <ProjectReference Include="Arriba.Communication\Arriba.Core.Communication.csproj" />
+        <ProjectReference Include="Arriba.Query\Arriba.Core.Query.csproj" />
+        <ProjectReference Include="Arriba.Server\Arriba.Core.Server.csproj" /> -->
+    </ItemGroup>
+</Project>

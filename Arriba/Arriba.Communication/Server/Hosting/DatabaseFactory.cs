@@ -3,23 +3,21 @@
 
 namespace Arriba.Server.Hosting
 {
-    using Arriba.Model;
     using System.Composition;
+    using Model;
 
     /// <summary>
-    /// Represents a singleton database export
+    ///     Represents a singleton database export
     /// </summary>
-    [Export, Shared]
+    [Export]
+    [Shared]
     public class DatabaseFactory
     {
         private static SecureDatabase s_database;
 
         public DatabaseFactory()
         {
-            if (s_database == null)
-            {
-                s_database = new SecureDatabase();
-            }
+            if (s_database == null) s_database = new SecureDatabase();
         }
 
         public SecureDatabase GetDatabase()

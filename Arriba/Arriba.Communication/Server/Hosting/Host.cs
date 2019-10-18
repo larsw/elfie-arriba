@@ -1,25 +1,22 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Composition;
-using System.Composition.Convention;
-using System.Composition.Hosting;
-using System.Linq;
-
-using Arriba.Client;
-using Arriba.Communication;
-using Arriba.Model;
-
-using Newtonsoft.Json;
-
 namespace Arriba.Server.Hosting
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Composition.Convention;
+    using System.Composition.Hosting;
+    using System.Linq;
+    using Client;
+    using Communication;
+    using Model;
+    using Newtonsoft.Json;
+
     public class Host : IDisposable
     {
-        private CompositionHost _container = null;
-        private ContainerConfiguration _configuration = null;
+        private readonly ContainerConfiguration _configuration;
+        private CompositionHost _container;
 
         public Host()
         {
@@ -46,9 +43,19 @@ namespace Arriba.Server.Hosting
                 .Shared();
 
             //                       Arriba.dll              Arriba.Client                  Arriba.Communication           Arriba.Server
-            var assemblies = new[] { typeof(Table).Assembly, typeof(ArribaClient).Assembly, typeof(IApplication).Assembly, typeof(Host).Assembly };
+            var assemblies = new[]
+            {
+                typeof(Table).Assembly, typeof(ArribaClient).Assembly, typeof(IApplication).Assembly,
+                typeof(Host).Assembly
+            };
 
             _configuration = new ContainerConfiguration().WithAssemblies(assemblies.Distinct(), conventions);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public void Compose()
@@ -58,12 +65,12 @@ namespace Arriba.Server.Hosting
 
         public void Add<TContract>(TContract value)
         {
-            _configuration.WithExport<TContract>(value);
+            _configuration.WithExport(value);
         }
 
         public void AddConfigurationValue<T>(string name, T value)
         {
-            _configuration.WithExport<T>(value, contractName: name);
+            _configuration.WithExport(value, name);
         }
 
         public T GetService<T>()
@@ -76,20 +83,11 @@ namespace Arriba.Server.Hosting
             return _container.GetExports<T>();
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
 
-            if (_container != null)
-            {
-                _container.Dispose();
-            }
+            if (_container != null) _container.Dispose();
         }
     }
 }

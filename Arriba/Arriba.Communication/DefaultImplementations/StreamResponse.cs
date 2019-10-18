@@ -1,24 +1,20 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.IO;
-using System.Threading.Tasks;
-
 namespace Arriba.Communication
 {
+    using System.IO;
+    using System.Threading.Tasks;
+
     internal class StreamResponse : StreamWriterResponse
     {
         public StreamResponse(string contentType, Stream stream)
             : base(contentType)
         {
-            this.Stream = stream;
+            Stream = stream;
         }
 
-        public Stream Stream
-        {
-            get;
-            private set;
-        }
+        public Stream Stream { get; }
 
         public override Task WriteToStreamAsync(Stream outputStream)
         {
@@ -29,10 +25,7 @@ namespace Arriba.Communication
         {
             if (!disposing) return;
 
-            if (this.Stream != null)
-            {
-                this.Stream.Dispose();
-            }
+            if (Stream != null) Stream.Dispose();
 
             base.Dispose();
         }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -479,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Elfie.Test.Model.Strings
             String8 value8 = value.TestConvert();
 
             double expectedDouble, actualDouble;
-            Assert.AreEqual(double.TryParse(value, out expectedDouble), value8.TryToDouble(out actualDouble));
+            Assert.AreEqual(double.TryParse(value, NumberStyles.Float, new CultureInfo("en-US"), out expectedDouble), value8.TryToDouble(out actualDouble));
             Assert.AreEqual(expectedDouble, actualDouble);
         }
 

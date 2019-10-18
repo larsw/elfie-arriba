@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.Elfie.Serialization
             base(stream, hasHeaderRow)
         { }
 
-        protected override String8Set SplitCells(String8 row, PartialArray<int> cellPositionArray)
+        protected override String8Set? SplitCells(String8 row, PartialArray<int> cellPositionArray)
         {
+            if (row.StartsWith(0x23)) return null; // if line starts with '#' it is a comment
             // Remove trailing '\r' to handle '\r\n' and '\n' line endings uniformly
             if (row.EndsWith(UTF8.CR)) row = row.Substring(0, row.Length - 1);
             return row.SplitAndDecodeCsvCells(cellPositionArray);

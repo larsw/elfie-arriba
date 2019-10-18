@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-
 namespace Arriba.Communication
 {
+    using System;
+
     /// <summary>
-    /// Default implementation of IResponse<typeparam name="T"></typeparam>
+    ///     Default implementation of IResponse
+    ///     <typeparam name="T"></typeparam>
     /// </summary>
     public class Response<T> : Response, IResponse<T>
     {
@@ -23,17 +24,11 @@ namespace Arriba.Communication
             _responseBody = body;
         }
 
+        public new T ResponseBody => (T) GetResponseBody();
+
         protected override object GetResponseBody()
         {
             return _responseBody;
-        }
-
-        public new T ResponseBody
-        {
-            get
-            {
-                return (T)this.GetResponseBody();
-            }
         }
 
         protected override void Dispose(bool disposing)
@@ -43,13 +38,11 @@ namespace Arriba.Communication
             if (!disposing) return;
 
             if (_responseBody != null)
-            {
                 if (_responseBody is IDisposable)
                 {
-                    ((IDisposable)_responseBody).Dispose();
-                    _responseBody = default(T);
+                    ((IDisposable) _responseBody).Dispose();
+                    _responseBody = default;
                 }
-            }
         }
     }
 }

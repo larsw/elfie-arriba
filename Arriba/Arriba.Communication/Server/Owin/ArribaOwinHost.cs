@@ -1,38 +1,37 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Arriba.Server.Owin
 {
-    using Arriba.Communication;
-    using Arriba.Server.Hosting;
+    using System;
+    using System.Collections.Generic;
     using System.IO;
-    using AppFunc = Func<IDictionary<string, object>, Task>;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Communication;
+    using Hosting;
+    using AppFunc = System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>;
 
     public class ArribaOwinHost
     {
+        private readonly IRequestHandler _handler;
+        private readonly AppFunc _next;
+        private readonly ComposedApplicationServer _server;
         private Host _arribaHost;
-        private AppFunc _next;
-        private ComposedApplicationServer _server;
-        private IRequestHandler _handler;
 
         public ArribaOwinHost(AppFunc next, Host arribaHost)
         {
             _next = next;
             _arribaHost = arribaHost;
             _server = arribaHost.GetService<ComposedApplicationServer>();
-            _handler = _server as IRequestHandler;
+            _handler = _server;
         }
 
         public async Task Invoke(IDictionary<string, object> environment)
         {
             IRequest request = new ArribaOwinRequest(environment, _server.ReaderWriter);
 
-            var resp = await _handler.HandleAsync(request, passThrough: true);
+            var resp = await _handler.HandleAsync(request, true);
 
             if (resp == null || resp.Status == ResponseStatus.NotHandled)
             {
@@ -41,10 +40,11 @@ namespace Arriba.Server.Owin
             }
 
             // Write response. 
-            await this.WriteResponse(request, resp, environment, _server.ReaderWriter);
+            await WriteResponse(request, resp, environment, _server.ReaderWriter);
         }
 
-        private async Task WriteResponse(IRequest request, IResponse response, IDictionary<string, object> environment, IContentReaderWriterService readerWriter)
+        private async Task WriteResponse(IRequest request, IResponse response, IDictionary<string, object> environment,
+            IContentReaderWriterService readerWriter)
         {
             var responseHeaders = environment.Get<IDictionary<string, string[]>>("owin.ResponseHeaders");
             var responseBody = environment.Get<Stream>("owin.ResponseBody");
@@ -63,16 +63,16 @@ namespace Arriba.Server.Owin
                 }
                 else
                 {
-                    responseHeaders[header.Item1] = new[] { header.Item2 };
+                    responseHeaders[header.Item1] = new[] {header.Item2};
                 }
             }
 
             // For stream responses we just write the content directly back to the context 
-            IStreamWriterResponse streamedResponse = response as IStreamWriterResponse;
+            var streamedResponse = response as IStreamWriterResponse;
 
             if (streamedResponse != null)
             {
-                responseHeaders["Content-Type"] = new[] { streamedResponse.ContentType };
+                responseHeaders["Content-Type"] = new[] {streamedResponse.ContentType};
                 await streamedResponse.WriteToStreamAsync(responseBody);
             }
             else if (response.ResponseBody != null)
@@ -81,18 +81,15 @@ namespace Arriba.Server.Owin
                 const string DefaultContentType = "application/json";
 
                 string accept;
-                if (!request.Headers.TryGetValue("Accept", out accept))
-                {
-                    accept = DefaultContentType;
-                }
+                if (!request.Headers.TryGetValue("Accept", out accept)) accept = DefaultContentType;
 
                 // Split and clean the accept header and prefer output content types requested by the client,
                 // always falls back to json if no match is found. 
-                IEnumerable<string> contentTypes = accept.Split(';').Where(a => a != "*/*");
+                var contentTypes = accept.Split(';').Where(a => a != "*/*");
                 var writer = readerWriter.GetWriter(contentTypes, DefaultContentType, response.ResponseBody);
 
                 // NOTE: One must set the content type *before* writing to the output stream. 
-                responseHeaders["Content-Type"] = new[] { writer.ContentType };
+                responseHeaders["Content-Type"] = new[] {writer.ContentType};
 
                 Exception writeException = null;
 
@@ -111,13 +108,14 @@ namespace Arriba.Server.Owin
                     environment["owin.ResponseStatusCode"] = 500;
 
                     if (responseBody.CanWrite)
-                    {
                         using (var failureWriter = new StreamWriter(responseBody))
                         {
-                            var message = String.Format("ERROR: Content writer {0} for content type {1} failed with exception {2}", writer.GetType(), writer.ContentType, writeException.GetType().Name);
+                            var message =
+                                string.Format(
+                                    "ERROR: Content writer {0} for content type {1} failed with exception {2}",
+                                    writer.GetType(), writer.ContentType, writeException.GetType().Name);
                             await failureWriter.WriteAsync(message);
                         }
-                    }
                 }
             }
 
@@ -125,7 +123,7 @@ namespace Arriba.Server.Owin
         }
 
         /// <summary>
-        /// Map generic responses to http status code responses.
+        ///     Map generic responses to http status code responses.
         /// </summary>
         /// <param name="response">Response.</param>
         /// <returns>Http status code.</returns>

@@ -3,7 +3,7 @@
 
 using System;
 using System.IO;
-
+using Elfie.Core;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
